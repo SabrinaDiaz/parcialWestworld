@@ -1,0 +1,110 @@
+//  A - PERSONAJES
+
+class Personaje {
+	var energia
+	//var lugar
+	
+	method nivelDeFelicidad() //cada personaje lo maneja distinto
+	
+	method nivelDeRebeldia() = 1 / self.nivelDeFelicidad()
+	
+	method conocerEscenario(escenario) {
+		energia -= escenario.nivelDeFama()
+	}
+	method esRebelde() = self.nivelDeRebeldia() > 10
+	
+	method morite() //cada personaje se muere de manera distinta
+}
+
+const cantina = new Escenario (tipoEscenario = bajoCosto )
+const recuerdoDolores = new Recuerdo(descripcion = "conocio al amor de su vida" , escenario = cantina)
+const dolores = new Anfitrion(energia = 90, velocidad = 0.8, recuerdos = [recuerdoDolores])
+const william = new Huesped ( minutos = 3600, energia = 70 , mejoresAmigos = [dolores])
+
+class Huesped inherits Personaje{
+	var minutos
+	var mejoresAmigos = []
+	
+	override method nivelDeFelicidad() = minutos * self.felicidadAmigos()
+	
+	method felicidadAmigos() = mejoresAmigos.sum({amigo => amigo.nivelDeFelicidad()})
+	
+	override method morite() { minutos = 0 }
+	
+	method agregarAmigo(nuevoAmigo) = mejoresAmigos.add(nuevoAmigo)
+}
+
+class Anfitrion inherits Personaje{
+	var velocidad
+	var recuerdos = []
+	
+	override method nivelDeFelicidad() = energia / velocidad
+	
+	override method morite() { velocidad = 0 }
+}
+
+class Recuerdo {
+	var descripcion
+	var escenario
+	
+	method emotividad() = descripcion.size() * escenario.nivelDeFama()
+}
+
+// B - ESCENARIOS
+
+//esto tiene que ser como una interface, me parece, escenario puede ser clase y el tipo de escenario es una interfaz
+class Escenario{
+	var property tipoEscenario //se refiera a si es de bajo presupuesto, lujo o estandar
+	var base = 100
+	
+	method nivelDeFama() = base + self.extra()
+	
+	method extra()
+	
+	method evolucionar()
+}
+
+//se lo declara como objeto porque el escenario puede evolucionar por ende cambiar de objeto
+object bajoCosto inherits Escenario{
+	var property zona = "caballito"
+	
+	override method evolucionar() = self.tipoEscenario(estandar)
+	
+	override method extra() = zona.size()
+}
+
+object estandar inherits Escenario{
+	
+	override method evolucionar() = self.tipoEscenario(lujo)
+	
+	override method extra() = 10
+}
+
+object lujo inherits Escenario{
+	var visitas
+	
+	override method evolucionar() {  self.error("este tipo de escenario no puede evolucionar") }
+	
+	override method extra() = visitas
+	
+	method aumentarVisitas() { visitas += 1 }
+}
+
+// C - TRAMAS
+
+class Trama{
+	var personajes = []
+	var escenarioPrincipal
+	
+	method complejidadTrama() = escenarioPrincipal.nivelDeFama() / self.personajeMasFeliz()
+	
+	method personajeMasFeliz() = personajes.max({personaje => personaje.nivelDeFelicidad()}) 
+	
+	method renovar(){
+		escenarioPrincipal.evolucionar()
+		personajes.forEach({personaje => if(personaje.esRebelde()) personaje.morite()})
+	}
+	method esPicante(){
+		return personajes.all({personaje => personaje.esRebelde()})
+	}
+}
